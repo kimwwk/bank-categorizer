@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+*.egg-info/
+data/
+disposable/
+notes/
+secret.md
+n8n-env-config.env
+plaid-access-token-steps.md
