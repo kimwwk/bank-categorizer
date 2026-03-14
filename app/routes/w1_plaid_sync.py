@@ -141,7 +141,7 @@ async def plaid_sync():
                 deposit_tx = tx_by_id[transfer_pairs[tx_id]]
                 mapped = _map_transfer(tx, deposit_tx)
                 await firefly.post("/transactions", {
-                    "apply_rules": False,
+                    "apply_rules": True,
                     "fire_webhooks": False,
                     "error_if_duplicate_hash": True,
                     "transactions": [mapped],
