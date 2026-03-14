@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.clients import firefly, openrouter
+from app.config import settings
 
 router = APIRouter(prefix="/w2", tags=["W2 LLM Categorize"])
 
@@ -8,7 +9,7 @@ router = APIRouter(prefix="/w2", tags=["W2 LLM Categorize"])
 def _build_rule(merchant: str, category: str) -> dict:
     return {
         "title": f"Auto: {merchant}",
-        "rule_group_id": 1,
+        "rule_group_id": settings.rule_group_id,
         "trigger": "store-journal",
         "active": True,
         "strict": True,
@@ -108,7 +109,7 @@ async def llm_categorize():
     # 8. Trigger rule group
     trigger_status = "ok"
     try:
-        await firefly.trigger_rule_group(1, 1)
+        await firefly.trigger_rule_group(settings.rule_group_id)
     except Exception as e:
         trigger_status = f"error: {e}"
 

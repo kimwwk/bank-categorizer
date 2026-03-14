@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request
 
 from app.clients import firefly
+from app.config import settings
 
 router = APIRouter(prefix="/w3", tags=["W3 Learn Corrections"])
 
@@ -8,7 +9,7 @@ router = APIRouter(prefix="/w3", tags=["W3 Learn Corrections"])
 def _build_rule(merchant: str, category: str) -> dict:
     return {
         "title": f"Auto: {merchant}",
-        "rule_group_id": 1,
+        "rule_group_id": settings.rule_group_id,
         "trigger": "store-journal",
         "active": True,
         "strict": True,
