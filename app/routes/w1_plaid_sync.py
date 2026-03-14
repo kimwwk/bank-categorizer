@@ -115,7 +115,7 @@ async def plaid_sync():
     sync_result = await plaid.transactions_sync(cursor)
     new_cursor = sync_result["cursor"]
 
-    stats = {"added": 0, "modified": 0, "removed": 0, "transfers": 0, "errors": []}
+    stats = {"added": 0, "modified": 0, "removed": 0, "transfers": 0, "skipped": 0, "errors": []}
 
     # Detect inter-account transfers before processing
     added = sync_result["added"]
@@ -141,7 +141,7 @@ async def plaid_sync():
                 deposit_tx = tx_by_id[transfer_pairs[tx_id]]
                 mapped = _map_transfer(tx, deposit_tx)
                 await firefly.post("/transactions", {
-                    "apply_rules": True,
+                    "apply_rules": False,
                     "fire_webhooks": False,
                     "error_if_duplicate_hash": True,
                     "transactions": [mapped],
@@ -162,7 +162,7 @@ async def plaid_sync():
             stats["added"] += 1
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 422:
-                pass
+                stats["skipped"] += 1
             else:
                 stats["errors"].append(f"add {tx.get('transaction_id')}: {e}")
         except Exception as e:
@@ -211,7 +211,7 @@ async def plaid_sync():
 
     summary = (
         f"Plaid Sync complete: {stats['added']} added, "
-        f"{stats['transfers']} transfers, "
+        f"{stats['transfers']} transfers, {stats['skipped']} skipped, "
         f"{stats['modified']} modified, {stats['removed']} removed, "
         f"{len(stats['errors'])} errors"
     )

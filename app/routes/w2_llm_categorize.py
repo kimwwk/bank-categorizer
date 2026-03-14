@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.clients import firefly, openrouter
+from app.clients import firefly, openai_llm
 from app.config import settings
 
 router = APIRouter(prefix="/w2", tags=["W2 LLM Categorize"])
@@ -43,8 +43,10 @@ async def llm_categorize():
     # 1. Fetch valid categories
     categories = await firefly.get_all_categories()
 
-    # 2. Fetch uncategorized transactions
-    uncategorized = await firefly.search_transactions("has_no_category:true")
+    # 2. Fetch uncategorized transactions (exclude transfers)
+    withdrawals = await firefly.search_transactions("has_no_category:true type:withdrawal")
+    deposits = await firefly.search_transactions("has_no_category:true type:deposit")
+    uncategorized = withdrawals + deposits
     if not uncategorized:
         return {"status": "ok", "summary": "No uncategorized transactions found"}
 
@@ -61,7 +63,7 @@ async def llm_categorize():
         return {"status": "ok", "summary": "No merchants to categorize"}
 
     # 4. Ask LLM
-    llm_mappings = await openrouter.categorize(merchants, categories)
+    llm_mappings = await openai_llm.categorize(merchants, categories)
 
     # 5. Validate — reject hallucinated categories
     category_set = set(categories)

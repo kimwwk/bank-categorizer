@@ -1,3 +1,6 @@
+import json
+import logging
+
 from fastapi import APIRouter, Request
 
 from app.clients import firefly
@@ -40,8 +43,8 @@ def _extract_category_from_rule(rule: dict) -> str | None:
 @router.post("/learn-corrections")
 async def learn_corrections(request: Request):
     # Firefly III webhooks may not send Content-Type: application/json
-    import json
     raw = await request.body()
+    logging.info(f"W3 raw payload: {raw[:500]}")
     try:
         body = json.loads(raw)
     except (json.JSONDecodeError, ValueError):
@@ -63,6 +66,9 @@ async def learn_corrections(request: Request):
 
     if not transactions:
         return {"status": "skipped", "message": "No transaction data found"}
+
+    if transactions[0].get("type") == "transfer":
+        return {"status": "skipped", "message": "Skipping transfer transaction"}
 
     merchant = transactions[0].get("description", "").strip()
     category = transactions[0].get("category_name", "").strip()

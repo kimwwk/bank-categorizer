@@ -34,8 +34,10 @@ async def health_check():
 
     # 2. Uncategorized count
     try:
-        uncategorized = await firefly.search_transactions("has_no_category:true")
-        count = len(uncategorized)
+        # Only count withdrawals + deposits, not transfers (transfers intentionally have no category)
+        withdrawals = await firefly.search_transactions("has_no_category:true type:withdrawal")
+        deposits = await firefly.search_transactions("has_no_category:true type:deposit")
+        count = len(withdrawals) + len(deposits)
         if count > 10:
             checks.append({"name": "Uncategorized Transactions", "status": "FAIL", "detail": f"{count} uncategorized transactions"})
             any_failed = True
