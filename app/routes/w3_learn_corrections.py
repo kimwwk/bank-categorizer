@@ -39,7 +39,13 @@ def _extract_category_from_rule(rule: dict) -> str | None:
 
 @router.post("/learn-corrections")
 async def learn_corrections(request: Request):
-    body = await request.json()
+    # Firefly III webhooks may not send Content-Type: application/json
+    import json
+    raw = await request.body()
+    try:
+        body = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return {"status": "skipped", "message": "Could not parse request body"}
 
     # Parse webhook payload from Firefly III
     content = body.get("content", body)
