@@ -22,6 +22,25 @@ async def item_get() -> dict:
         return r.json()
 
 
+async def create_update_link_token() -> dict:
+    """Create a hosted Link token in update mode to fix ITEM_LOGIN_REQUIRED."""
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as c:
+        r = await c.post(
+            f"{settings.plaid_base_url}/link/token/create",
+            json={
+                **_auth(),
+                "client_name": "Bank Categorizer",
+                "access_token": settings.plaid_access_token,
+                "country_codes": ["CA"],
+                "language": "en",
+                "user": {"client_user_id": "bank-categorizer-user"},
+                "hosted_link": {},
+            },
+        )
+        r.raise_for_status()
+        return r.json()
+
+
 async def transactions_sync(cursor: str | None = None) -> dict:
     """Call /transactions/sync and paginate until has_more is false.
 

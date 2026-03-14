@@ -107,7 +107,7 @@ async def learn_corrections(request: Request):
     trigger_status = "ok"
     if rule_id:
         try:
-            await firefly.trigger_rule(int(rule_id), 1)
+            await firefly.trigger_rule(int(rule_id))
         except Exception as e:
             trigger_status = f"error: {e}"
 

@@ -91,21 +91,31 @@ async def get_all_categories() -> list[str]:
     return [c["attributes"]["name"] for c in items]
 
 
-async def trigger_rule_group(group_id: int = 1, account_id: int = 1):
+def _account_ids() -> list[str]:
+    """Get all mapped Firefly account IDs, or ["1"] as fallback."""
+    mapping = settings.account_mapping
+    if mapping:
+        return list(set(mapping.values()))
+    return ["1"]
+
+
+async def trigger_rule_group(group_id: int = 1):
+    params = [("accounts[]", aid) for aid in _account_ids()]
     async with httpx.AsyncClient(timeout=60.0) as c:
         r = await c.post(
             f"{settings.firefly_url}/api/v1/rule-groups/{group_id}/trigger",
             headers=_headers(),
-            params={"accounts[]": str(account_id)},
+            params=params,
         )
         r.raise_for_status()
 
 
-async def trigger_rule(rule_id: int, account_id: int = 1):
+async def trigger_rule(rule_id: int):
+    params = [("accounts[]", aid) for aid in _account_ids()]
     async with httpx.AsyncClient(timeout=60.0) as c:
         r = await c.post(
             f"{settings.firefly_url}/api/v1/rules/{rule_id}/trigger",
             headers=_headers(),
-            params={"accounts[]": str(account_id)},
+            params=params,
         )
         r.raise_for_status()

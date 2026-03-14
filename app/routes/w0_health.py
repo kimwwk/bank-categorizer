@@ -71,3 +71,18 @@ async def health_check():
         "checks": checks,
         "summary": summary,
     }
+
+
+@router.post("/plaid-reauth")
+async def plaid_reauth():
+    """Generate a hosted Plaid Link URL to re-authenticate the bank connection."""
+    try:
+        link_resp = await plaid.create_update_link_token()
+        return {
+            "status": "ok",
+            "url": link_resp.get("hosted_link_url"),
+            "expiration": link_resp.get("expiration"),
+            "message": "Open the URL in a browser to re-authenticate your bank connection.",
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
